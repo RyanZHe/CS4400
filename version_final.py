@@ -130,17 +130,17 @@ class version2():
                 error = messagebox.showerror("Invalid Credentials", "Please Register")
             else:
                 sql = "SELECT * FROM User WHERE UserType = 'student' AND Username = \'%s\'" % self.sLoginUser.get()
-                isManager = self.connect(sql, "Return Execution Number")
+                isAdmin = self.connect(sql, "Return Execution Number")
                 self.user = self.sLoginUser.get()
                 self.sLoginUser.set("")
                 self.sLoginPass.set("")
                 message = messagebox.showinfo("Congratulations", "Login Successfully")
 
                 # self.loginWin.withdraw()
-                if isManager != 0:
+                if isAdmin != 0:
                     self.operation()
                 else:
-                    self.addProject()
+                    self.chooseFunctionality()
 
 ###################################################### Select Operaions
 
@@ -158,7 +158,43 @@ class version2():
         # Button(f, text = "See Past Reviews", command = self.seePreviousReview).pack()
         f.pack()
 
-###################################################### Country Search, Display Countries, Display A Country
+###################################################### Admin Functionalities
+
+    def chooseFunctionality(self):
+        self.chooseFuncWin = Toplevel(self.loginWin)
+        self.chooseFuncWin.title("Choose Functionality")
+
+        f = Frame(self.chooseFuncWin)
+        Label(f, text = "Choose Functionality", font=("Helvetica", 20)).pack()
+        Button(f, text = "View Applications", command = self.viewApplications).pack()
+        Button(f, text = "View popular project report", command = self.viewPopularProjectReport).pack()
+        Button(f, text = "View Application report", command = self.viewApplicationReport).pack()
+        Button(f, text = "Add a Project", command = self.addProject).pack()
+        Button(f, text = "Add a Course", command = self.addCourse).pack()
+        f.pack()
+
+    def viewApplications(self):
+        self.viewAppsWin = Toplevel(self.loginWin)
+        self.viewAppsWin.title("View Applications")
+
+    def viewPopularProjectReport(self):
+        self.viewPopRptWin = Toplevel(self.loginWin)
+        self.viewPopRptWin.title("View popular project report")
+
+    def viewApplicationReport(self):
+        self.viewAppRptWin = Toplevel(self.loginWin)
+        self.viewAppRptWin.title("View Application report")
+
+    def addProject(self):
+        self.addProjectWin = Toplevel(self.loginWin)
+        self.addProjectWin.title("Add a Project")
+
+    def addCourse(self):
+        self.addCourseWin = Toplevel(self.loginWin)
+        self.addCourseWin.title("Add a Course")
+
+
+######################################################
 
     def countrySearch(self):
 
@@ -550,57 +586,57 @@ class version2():
 
 ###################################################### Add City
 
-    def addProject(self):
-        self.addCityWin = Toplevel(self.loginWin)
-        self.addCityWin.title("City")
+    # def addProject(self):
+    #     self.addCityWin = Toplevel(self.loginWin)
+    #     self.addCityWin.title("City")
 
-        f = Frame(self.addCityWin)
-        Label(f, text = "City").pack()
-        f.pack()
+    #     f = Frame(self.addCityWin)
+    #     Label(f, text = "City").pack()
+    #     f.pack()
 
-        f = Frame(self.addCityWin)
-        Label(f, text = "Name").grid(row = 0, column = 0)
-        self.sAddCityName = StringVar()
-        Entry(f, textvariable = self.sAddCityName).grid(row = 0, column = 1, columnspan = 2)
+    #     f = Frame(self.addCityWin)
+    #     Label(f, text = "Name").grid(row = 0, column = 0)
+    #     self.sAddCityName = StringVar()
+    #     Entry(f, textvariable = self.sAddCityName).grid(row = 0, column = 1, columnspan = 2)
 
-        Label(f, text = "Country").grid(row = 1, column = 0)
-        # Display Country Names Dropdown Menu
-        OPTIONS = self.connect("SELECT CountryName FROM Country", "Return Single Item")
-        self.dCountry = StringVar()
-        dropdown = OptionMenu(f, self.dCountry, *OPTIONS)
-        dropdown.config(width = 15, padx = 15, pady = 5)
-        dropdown.grid(row = 1, column = 1)
+    #     Label(f, text = "Country").grid(row = 1, column = 0)
+    #     # Display Country Names Dropdown Menu
+    #     OPTIONS = self.connect("SELECT CountryName FROM Country", "Return Single Item")
+    #     self.dCountry = StringVar()
+    #     dropdown = OptionMenu(f, self.dCountry, *OPTIONS)
+    #     dropdown.config(width = 15, padx = 15, pady = 5)
+    #     dropdown.grid(row = 1, column = 1)
 
-        Label(f, text = "Population").grid(row = 2, column = 0)
-        self.sAddCityPopulation = StringVar()
-        Entry(f, textvariable = self.sAddCityPopulation).grid(row = 2, column = 1, columnspan = 2)
+    #     Label(f, text = "Population").grid(row = 2, column = 0)
+    #     self.sAddCityPopulation = StringVar()
+    #     Entry(f, textvariable = self.sAddCityPopulation).grid(row = 2, column = 1, columnspan = 2)
 
-        Label(f, text = "GPS").grid(row = 3, column = 0)
-        self.sAddCityLatitude = StringVar()
-        Entry(f, textvariable = self.sAddCityLatitude).grid(row = 3, column = 1)
-        self.sAddCityLongitude = StringVar()
-        Entry(f, textvariable = self.sAddCityLongitude).grid(row = 3, column = 2)
+    #     Label(f, text = "GPS").grid(row = 3, column = 0)
+    #     self.sAddCityLatitude = StringVar()
+    #     Entry(f, textvariable = self.sAddCityLatitude).grid(row = 3, column = 1)
+    #     self.sAddCityLongitude = StringVar()
+    #     Entry(f, textvariable = self.sAddCityLongitude).grid(row = 3, column = 2)
 
-        Label(f, text = "Latitude(e.g. 3 24 N or 12 11 S)").grid(row = 4, column = 1)
-        Label(f, text = "Longitude(e.g. 3 24 E or 12 23 W)").grid(row = 4, column = 2)
+    #     Label(f, text = "Latitude(e.g. 3 24 N or 12 11 S)").grid(row = 4, column = 1)
+    #     Label(f, text = "Longitude(e.g. 3 24 E or 12 23 W)").grid(row = 4, column = 2)
 
-        Label(f, text = "Is Capital?").grid(row = 5, column = 0)
-        self.cityIsCapital = IntVar()
-        self.cityIsCapital.set(1)
-        Radiobutton(f, text = "YES", variable = self.cityIsCapital, value = 1).grid(row = 5, column = 1)
-        Radiobutton(f, text = "NO", variable = self.cityIsCapital, value = 0).grid(row = 5, column = 2)
+    #     Label(f, text = "Is Capital?").grid(row = 5, column = 0)
+    #     self.cityIsCapital = IntVar()
+    #     self.cityIsCapital.set(1)
+    #     Radiobutton(f, text = "YES", variable = self.cityIsCapital, value = 1).grid(row = 5, column = 1)
+    #     Radiobutton(f, text = "NO", variable = self.cityIsCapital, value = 0).grid(row = 5, column = 2)
 
-        Label(f, text = "Languages").grid(row = 6, column = 0)
-        languages = self.connect("SELECT * FROM LANGUAGE", "Return Single Item")
-        self.displayLanguage = CheckBar(f, languages)
-        self.displayLanguage.grid(row = 6, column = 1, columnspan = 2)
+    #     Label(f, text = "Languages").grid(row = 6, column = 0)
+    #     languages = self.connect("SELECT * FROM LANGUAGE", "Return Single Item")
+    #     self.displayLanguage = CheckBar(f, languages)
+    #     self.displayLanguage.grid(row = 6, column = 1, columnspan = 2)
 
-        f.pack()
+    #     f.pack()
 
-        f = Frame(self.addCityWin)
-        Button(f, text = "Go Back", command = self.addCityWin.destroy).pack(side = LEFT)
-        Button(f, text = "Submit", command = self.addACity).pack(side = RIGHT)
-        f.pack()
+    #     f = Frame(self.addCityWin)
+    #     Button(f, text = "Go Back", command = self.addCityWin.destroy).pack(side = LEFT)
+    #     Button(f, text = "Submit", command = self.addACity).pack(side = RIGHT)
+    #     f.pack()
 
     def addACity(self):
         cityName = self.sAddCityName.get()
