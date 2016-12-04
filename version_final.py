@@ -37,6 +37,7 @@ class version2():
     def __init__(self, root):
 
         ### Login Page
+        root.geometry('{}x{}'.format(300, 300))
         self.loginWin = root
         self.loginWin.title("Login")
 
@@ -162,6 +163,7 @@ class version2():
 
     def chooseFunctionality(self):
         self.chooseFuncWin = Toplevel(self.loginWin)
+        self.chooseFuncWin.geometry('{}x{}'.format(300, 300))
         self.chooseFuncWin.title("Choose Functionality")
 
         f = Frame(self.chooseFuncWin)
@@ -173,9 +175,71 @@ class version2():
         Button(f, text = "Add a Course", command = self.addCourse).pack()
         f.pack()
 
+
     def viewApplications(self):
         self.viewAppsWin = Toplevel(self.loginWin)
+        self.viewAppsWin.geometry('{}x{}'.format(600, 450))
         self.viewAppsWin.title("View Applications")
+
+        f = Frame(self.viewAppsWin)
+        f.pack()
+        Label(f, text = "View Applications", font=("Helvetica", 20)).pack()
+
+        f = Frame(self.viewAppsWin)
+        f.pack()
+        Label(f, text = "Project", font=("Helvetica", 15)).grid(row = 0, column = 0, padx = 5, pady = 5)
+        Label(f, text = "Applicant Major", font=("Helvetica", 15)).grid(row = 0, column = 1, sticky = W, padx = 10, pady = 5)
+        Label(f, text = "Applicant Year", font=("Helvetica", 15)).grid(row = 0, column = 2, sticky = W, padx = 20, pady = 5)
+        Label(f, text = "Status", font=("Helvetica", 15)).grid(row = 0, column = 3, sticky = W, padx = 10, pady = 5)
+
+# Rayquaza
+        numProj = self.connect("SELECT COUNT(*) Project FROM Apply", "Return List")
+        projects = self.connect("SELECT Project_name, Status FROM Apply", "Return List")
+        userIdList = self.connect("SELECT Student_name FROM Apply", "Return Single Item")
+        for num in range(1,int(numProj[0][0]) + 1):
+            userId = userIdList[num - 1]
+            appMajorYear = self.connect("SELECT Year, Major FROM User WHERE Username = \'%s\'" % userId, "Return List")
+            print (userIdList[num - 1])
+            print(appMajorYear)
+
+            Label(f, text = projects[num - 1][0]).grid(row = num, column = 0, sticky = W)
+            Label(f, text = projects[num - 1][1]).grid(row = num, column = 3)
+            if appMajorYear is None :
+                year = "N/A"
+                major = "N/A"
+            else:
+                year = appMajorYear[0][1]
+                major = appMajorYear[0][0]
+
+            Label(f, text = year).grid(row = num, column = 1)
+            Label(f, text = major).grid(row = num, column = 2)
+
+
+        f = Frame(self.viewAppsWin)
+        f.pack()
+        Button(f, text = "Back", command = self.chooseFunctionality).grid(row = 0, column = 0)
+        Button(f, text = "Accept", command = self.acceptApp).grid(row = 0, column = 2)
+        Button(f, text = "Reject", command = self.rejectApp).grid(row = 0, column = 3)
+
+    def acceptApp(self):
+        self.accepAppWin = Toplevel(self.loginWin)
+    def rejectApp(self):
+        self.acceptAppWin = Toplevel(self.loginWin)
+
+        # OPTIONS = self.connect("SELECT Project_name FROM Apply", "Return Single Item")
+        # dProject = StringVar()
+        # dropdown = OptionMenu(f, dProject, *OPTIONS)
+        # dropdown.config(width = 15, padx = 15, pady = 5)
+        # dropdown.pack()
+
+        # print(projects)
+        # print(projects[0][0]) #Epic
+        # print(projects[0][1]) #Pending
+        # sql = "SELECT CountryName, CityName, CountryPopulation, CountryLanguage FROM (CITY NATURAL JOIN COUNTRY_LANGUAGE NATURAL JOIN COUNTRY) WHERE Is_Capital = '1' %s %s %s ORDER BY CountryName ASC"
+        # self.displayProjects = CheckBar(f, projects)
+        # self.displayProjects.grid(row = 1, column = 0)
+        # f.pack()
+
 
     def viewPopularProjectReport(self):
         self.viewPopRptWin = Toplevel(self.loginWin)
