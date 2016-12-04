@@ -210,9 +210,9 @@ class version2():
     def update(self):
         #print(self.sLoginUser.get())
         sql = "UPDATE User SET Major = \'%s\', Year = 2014 WHERE Username = \'%s\'" % (self.dMajor.get(), self.sLoginUser.get())
-        print(sql)
-        sql1 = self.connect(sql, "Insertion")
-        print(sql1)
+        # print(sql)
+        self.connect(sql, "Insertion")
+        # print(sql1)
         self.returnTo(self.editProfileWin, self.mePageWin)
 
     def myApplication(self):
