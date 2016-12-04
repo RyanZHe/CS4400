@@ -218,6 +218,10 @@ class version2():
     def myApplication(self):
         self.myApplicationWin = Toplevel(self.loginWin)
         self.myApplicationWin.title("View My Application")
+        
+        f = Frame(self.editProfileWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.myApplicationWin, self.mePageWin)).pack()
+        f.pack()
 
     def projectSearch(self):
         self.projectSearchWin = Toplevel(self.loginWin)
