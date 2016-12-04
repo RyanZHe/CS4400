@@ -133,8 +133,8 @@ class version2():
                 sql = "SELECT * FROM User WHERE UserType = 'student' AND Username = \'%s\'" % self.sLoginUser.get()
                 isAdmin = self.connect(sql, "Return Execution Number")
                 self.user = self.sLoginUser.get()
-                self.sLoginUser.set("")
-                self.sLoginPass.set("")
+                # self.sLoginUser.set("")
+                # self.sLoginPass.set("")
                 message = messagebox.showinfo("Congratulations", "Login Successfully")
 
                 # self.loginWin.withdraw()
@@ -143,7 +143,7 @@ class version2():
                 else:
                     self.chooseFunctionality()
 
-###################################################### Select Operaions
+###################################################### Student Functionalities
 
     def operation(self):
         ### Select Operation Window Initiation
@@ -152,12 +152,80 @@ class version2():
 
         f = Frame(self.selectWin)
         Label(f, text = "Main Page", font=("Helvetica", 20)).pack()
-        Button(f, text = "Me", command = self.countrySearch).pack()
-        Button(f, text = "View Project", command = self.citySearch).pack()
-        Button(f, text = "Project Search", command = self.locationSearch).pack()
-        Button(f, text = "Project Filter", command = self.eventSearch).pack()
+        Button(f, text = "Me", command = self.mePage).pack()
+        Button(f, text = "Project Serach", command = self.projectSearch).pack()
+        Button(f, text = "Course Search", command = self.courseSearch).pack()
+        # Button(f, text = "Project Filter", command = self.eventSearch).pack()
         # Button(f, text = "See Past Reviews", command = self.seePreviousReview).pack()
         f.pack()
+
+    def mePage(self):
+        self.mePageWin = Toplevel(self.loginWin)
+        self.mePageWin.title("Me")
+        f = Frame(self.mePageWin)
+        Label(f, text = "Me", font=("Helvetica", 20)).pack()
+        Button(f, text = "Edit Profile", command = self.editProfile).pack()
+        Button(f, text = "My Application", command = self.myApplication).pack()
+        f.pack()
+
+    def editProfile(self):
+        self.editProfileWin = Toplevel(self.loginWin)
+        self.editProfileWin.title("My Profile")
+        f = Frame(self.editProfileWin)
+        Label(f, text = "Edit Profile", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.editProfileWin)
+        Label(f, text = "Major", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        OPTIONS = self.connect("SELECT Name FROM Major", "Return Single Item")
+        self.dMajor = StringVar()
+        dropdown = OptionMenu(f, self.dMajor, *OPTIONS)
+        dropdown.config(width = 15, padx = 15, pady = 5)
+        dropdown.grid(row = 0, column = 1)
+        username = self.sLoginUser.get()
+        sMajor = self.connect("SELECT Major FROM User WHERE Username = \'%s\'" % username, "Return Single Item")
+        # print(len(sMajor))
+        self.dMajor.set(sMajor[0])
+        Label(f, text = "Year", font=("Helvetica", 20)).grid(row = 1, column = 0)
+        OPTIONS = ['freshman', 'sophomore', 'junior', 'senior']
+        self.dYear = StringVar()
+        dropdown = OptionMenu(f, self.dYear, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 1, column = 1)
+        self.dYear.set('sophomore')
+        Label(f, text = "Department", font=("Helvetica", 20)).grid(row = 2, column = 0)
+        major = self.dMajor.get()
+        print(major)
+        if major != 'NULL':
+            OPTION = self.connect("SELECT Dept_Name FROM Major WHERE Name = \'%s\'" % major, "Return Single Item")
+        else:
+            OPTION = ['']
+        Label(f, text = OPTION, font=("Helvetica", 20)).grid(row = 2, column = 1)
+        f.pack()
+
+        f = Frame(self.editProfileWin)
+        Button(f, text = "Back", command = self.update).pack()
+        f.pack()
+
+    def update(self):
+        #print(self.sLoginUser.get())
+        sql = "UPDATE User SET Major = \'%s\', Year = 2014 WHERE Username = \'%s\'" % (self.dMajor.get(), self.sLoginUser.get())
+        print(sql)
+        sql1 = self.connect(sql, "Insertion")
+        print(sql1)
+        self.returnTo(self.editProfileWin, self.mePageWin)
+
+    def myApplication(self):
+        self.myApplicationWin = Toplevel(self.loginWin)
+        self.myApplicationWin.title("View My Application")
+
+    def projectSearch(self):
+        self.projectSearchWin = Toplevel(self.loginWin)
+        self.projectSearchWin.title("View Project")
+
+    def courseSearch(self):
+        self.courseSearchWin = Toplevel(self.loginWin)
+        self.courseSearchWin.title("View Courses")
 
 ###################################################### Admin Functionalities
 
@@ -1451,24 +1519,24 @@ class version2():
         Button(f, text = "Submit", command = lambda : self.update(reviewInfo)).pack(side = RIGHT)
         f.pack()
 
-    def update(self, reviewInfo):
-        date = self.sUpdateDate.get()
-        subject = self.sUpdateSubject.get()
-        score = self.sUpdateScore.get()
-        description = str(self.tUpdateDescription.get("1.0", END))
+    # def update(self, reviewInfo):
+    #     date = self.sUpdateDate.get()
+    #     subject = self.sUpdateSubject.get()
+    #     score = self.sUpdateScore.get()
+    #     description = str(self.tUpdateDescription.get("1.0", END))
 
-        if date == "" or subject == "" or description == "" or score == "":
-            error = messagebox.showerror("Error", "Fill in All Blanks")
-        else:
-            sql = "UPDATE REVIEW SET ReviewDate = \'%s\', Subject = \'%s\', Review = \'%s\', Score = \'%s\' WHERE Username = \'%s\' AND ReviewDate = \'%s\' AND ReviewableID = \'%s\'" % (date, subject, description, score, reviewInfo[0], reviewInfo[1], reviewInfo[4])
-            self.connect(sql, "Insertion")
-            message = messagebox.showinfo("Congratulations!", "Review Updated!")
-            self.sUpdateDate.set("")
-            self.sUpdateSubject.set("")
-            self.sUpdateScore.set(0)
-            self.tUpdateDescription.delete("1.0", END)
-            self.seeReviewWin.destroy()
-            self.seePreviousReview()
+    #     if date == "" or subject == "" or description == "" or score == "":
+    #         error = messagebox.showerror("Error", "Fill in All Blanks")
+    #     else:
+    #         sql = "UPDATE REVIEW SET ReviewDate = \'%s\', Subject = \'%s\', Review = \'%s\', Score = \'%s\' WHERE Username = \'%s\' AND ReviewDate = \'%s\' AND ReviewableID = \'%s\'" % (date, subject, description, score, reviewInfo[0], reviewInfo[1], reviewInfo[4])
+    #         self.connect(sql, "Insertion")
+    #         message = messagebox.showinfo("Congratulations!", "Review Updated!")
+    #         self.sUpdateDate.set("")
+    #         self.sUpdateSubject.set("")
+    #         self.sUpdateScore.set(0)
+    #         self.tUpdateDescription.delete("1.0", END)
+    #         self.seeReviewWin.destroy()
+    #         self.seePreviousReview()
 
 ###################################################### General Methods
 
