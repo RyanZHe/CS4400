@@ -192,18 +192,42 @@ class version2():
         Label(f, text = "Applicant Year", font=("Helvetica", 15)).grid(row = 0, column = 2, sticky = W, padx = 20, pady = 5)
         Label(f, text = "Status", font=("Helvetica", 15)).grid(row = 0, column = 3, sticky = W, padx = 10, pady = 5)
 
-# Rayquaza
+
         numProj = self.connect("SELECT COUNT(*) Project FROM Apply", "Return List")
-        projects = self.connect("SELECT Project_name, Status FROM Apply", "Return List")
+        projects = self.connect("SELECT Project_name, Status, Student_name FROM Apply", "Return List")
+        acceptRejectList = []
+
         userIdList = self.connect("SELECT Student_name FROM Apply", "Return Single Item")
         for num in range(1,int(numProj[0][0]) + 1):
             userId = userIdList[num - 1]
             appMajorYear = self.connect("SELECT Year, Major FROM User WHERE Username = \'%s\'" % userId, "Return List")
-            print (userIdList[num - 1])
-            print(appMajorYear)
 
-            Label(f, text = projects[num - 1][0]).grid(row = num, column = 0, sticky = W)
-            Label(f, text = projects[num - 1][1]).grid(row = num, column = 3)
+# Rayquaza
+            self.projectName = projects[num - 1][0]
+            self.currentStatus = projects[num - 1][1]
+            self.studentName = projects[num - 1][2]
+            Label(f, text = self.projectName).grid(row = num, column = 0, sticky = W)
+
+            if self.currentStatus == 'Pending':
+                self.projectName2 = projects[num - 1][0]
+                print(self.projectName2)
+                self.currentStatus2 = projects[num - 1][1]
+                self.studentName2 = projects[num - 1][2]
+                OPTIONS = ['Accept', 'Pending', 'Reject']
+                dProject = StringVar()
+                dProject.set("Pending")
+                dropdown = OptionMenu(f, dProject, *OPTIONS, command = self.callback)
+                dropdown.config(width = 10)
+                dropdown.grid(row = num, column = 3)
+
+            # elif self.currentStatus != 'Pending' and self.currentStatus != 'Accepted' and self.currentStatus != 'Rejected':
+            #     sql = "UPDATE Apply SET Status = \'%s\' WHERE Project_name = \'%s\' AND Student_name = \'%s\'" % ('Pending', self.projectName, self.studentName)
+            #     self.connect(sql, "Insertion")
+
+            else:
+                Label(f, text = self.currentStatus).grid(row = num, column = 3, sticky = W)
+
+
             if appMajorYear is None :
                 year = "N/A"
                 major = "N/A"
@@ -217,14 +241,45 @@ class version2():
 
         f = Frame(self.viewAppsWin)
         f.pack()
-        Button(f, text = "Back", command = self.chooseFunctionality).grid(row = 0, column = 0)
-        Button(f, text = "Accept", command = self.acceptApp).grid(row = 0, column = 2)
-        Button(f, text = "Reject", command = self.rejectApp).grid(row = 0, column = 3)
+        Button(f, text = "Back", command = self.quitviewAppGotoFunc).grid(row = 0, column = 0)
+        # Button(f, text = "Submit", command = lambda: self.AcceptOrReject(acceptRejectList)).grid(row = 0, column = 1)
 
-    def acceptApp(self):
-        self.accepAppWin = Toplevel(self.loginWin)
-    def rejectApp(self):
-        self.acceptAppWin = Toplevel(self.loginWin)
+    # def AcceptOrReject(self, acceptedOrRejected):
+    #     for i in range(0, int(len(acceptedOrRejected) / 3)):
+
+    #         projectName = acceptedOrRejected[0 + 3 * i]
+    #         studentName = acceptedOrRejected[1 + 3 * i]
+    #         statusChange = acceptedOrRejected[2 + 3 * i]
+
+    #         if statusChange != 'Pending':
+    #             sql = "UPDATE Apply SET Status = \'%s\' WHERE Project_name = \'%s\' AND Student_name = \'%s\'" % (statusChange, projectName, studentName)
+    #             self.connect(sql, "Insertion")
+
+
+        self.viewApplications
+    def callback(self, value):
+        if value != 'Pending':
+            self.callbackWin = Toplevel(self.loginWin)
+            self.callbackWin.geometry('{}x{}'.format(400, 300))
+            self.callbackWin.title("Change Status")
+            print(self.projectName2)
+            projectName = self.projectName2
+            studentName = self.studentName2
+            if value == 'Accept':
+                sql = "UPDATE Apply SET Status = \'Accepted\' WHERE Project_name = \'%s\' AND Student_name = \'%s\'" % (projectName, studentName)
+            elif value == 'Reject':
+                sql = "UPDATE Apply SET Status = \'Rejected\' WHERE Project_name = \'%s\' AND Student_name = \'%s\'" % (projectName, studentName)
+
+            f = Frame(self.callbackWin)
+            f.pack()
+            Label(f, text = "Are you sure? No changes can be done.").grid(row = 0, column = 0, columnspan = 2)
+            Button(f, text = "Yes", command = lambda: self.changeStatus(sql)).grid(row = 1, column = 0)
+            Button(f, text = "No", command = self.chooseFunctionality).grid(row = 1, column = 1)
+
+    def changeStatus(self, sql):
+        self.callbackWin.withdraw()
+        self.connect(sql, "Insertion")
+        self.viewApplications
 
         # OPTIONS = self.connect("SELECT Project_name FROM Apply", "Return Single Item")
         # dProject = StringVar()
@@ -1520,6 +1575,7 @@ class version2():
                 print(sql)
                 cursor.execute(sql)
 
+
         except Exception as e:
             print(str(e))
             error = messagebox.showerror("Error", "SQL Connection Failed")
@@ -1528,6 +1584,13 @@ class version2():
         db.commit()
         db.close()
         return returned
+
+    def quitviewAppGotoFunc(self):
+        self.closeViewApp()
+        self.chooseFunctionality
+
+    def closeViewApp(self):
+        self.viewAppsWin.withdraw()
 
 window = Tk()
 app = version2(window)
