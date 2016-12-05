@@ -218,7 +218,7 @@ class version2():
     def myApplication(self):
         self.myApplicationWin = Toplevel(self.loginWin)
         self.myApplicationWin.title("View My Application")
-        
+
         f = Frame(self.myApplicationWin)
         Label(f, text = "My Application", font=("Helvetica", 20)).pack()
         f.pack()
@@ -285,7 +285,7 @@ class version2():
         Button(f, text = "Back", command = lambda: self.returnTo(self.projectSearchWin, self.selectWin)).grid(row = 0, column = 0)
         Button(f, text = "Search", command = self.searchProject).grid(row = 0, column = 1)
         f.pack()
-    
+
     def addCategory(self):
         self.categorySet.add(self.dCategory.get())
 
@@ -347,7 +347,7 @@ class version2():
 
         f = Frame(self.searchProjectWin)
         sql = sql + " GROUP BY Project.Name"
-        #print(sql)         
+        #print(sql)
         projectList = self.connect(sql, "Return Single Item")
         for iproject in projectList:
             Button(f, text = iproject, command = lambda: self.viewProject(iproject)).pack()
@@ -492,7 +492,7 @@ class version2():
 
         f = Frame(self.searchCourseWin)
         sql = sql + " GROUP BY Course.Name"
-        #print(sql)         
+        #print(sql)
         courseList = self.connect(sql, "Return Single Item")
         for icourse in courseList:
             Button(f, text = icourse, command = lambda: self.viewCourse(icourse)).pack()
@@ -570,7 +570,8 @@ class version2():
         Label(f, text = "Status", font=("Helvetica", 15)).grid(row = 0, column = 3, sticky = W, padx = 10, pady = 5)
 
 
-        numProj = self.connect("SELECT COUNT(*) Project FROM Apply", "Return List")
+        #numProj = self.connect("SELECT COUNT(Project_name) FROM Apply", "Return List")
+        #print(numProj)
         projects = self.connect("SELECT Project_name, Status, Student_name FROM Apply", "Return List")
         acceptRejectList = []
 
@@ -596,10 +597,6 @@ class version2():
                 dropdown = OptionMenu(f, dProject, *OPTIONS, command = self.callback)
                 dropdown.config(width = 10)
                 dropdown.grid(row = num, column = 3)
-
-            # elif self.currentStatus != 'Pending' and self.currentStatus != 'Accepted' and self.currentStatus != 'Rejected':
-            #     sql = "UPDATE Apply SET Status = \'%s\' WHERE Project_name = \'%s\' AND Student_name = \'%s\'" % ('Pending', self.projectName, self.studentName)
-            #     self.connect(sql, "Insertion")
 
             else:
                 Label(f, text = self.currentStatus).grid(row = num, column = 3, sticky = W)
@@ -675,11 +672,100 @@ class version2():
 
     def viewPopularProjectReport(self):
         self.viewPopRptWin = Toplevel(self.loginWin)
+        self.viewPopRptWin.geometry('{}x{}'.format(600, 400))
         self.viewPopRptWin.title("View popular project report")
+        f = Frame(self.viewPopRptWin)
+        f.pack()
+        Label(f, text = "View Popular Project Report", font=("Helvetica", 20)).pack()
+
+        f = Frame(self.viewPopRptWin)
+        f.pack()
+        Label(f, text = "Project Name").grid(row = 0, column = 0)
+        Label(f, text = "Number of Students").grid(row = 0, column = 1)
+
+        sql = "SELECT Name, NumStudent AS Number_of_Students FROM (Apply RIGHT OUTER JOIN Project ON Apply.Project_name = Project.Name) GROUP BY Name ORDER BY NumStudent DESC"
+        popProjectList = self.connect(sql, "Return List")
+        print(popProjectList)
+        length = len(popProjectList)
+        print(length)
+        if length > 10:
+            length = 10
+
+        for i in range(1, length):
+            Label(f, text = popProjectList[i][0]).grid(row = i, column = 0, sticky = W)
+            Label(f, text = popProjectList[i][1]).grid(row = i, column = 1)
+
+        f = Frame(self.viewPopRptWin)
+        f.pack()
+        Button(f, text = "Back", command = self.quitpopProjGotoFunc).grid(row = 0, column = 0)
+
 
     def viewApplicationReport(self):
         self.viewAppRptWin = Toplevel(self.loginWin)
+        self.viewAppRptWin.geometry('{}x{}'.format(1000, 600))
         self.viewAppRptWin.title("View Application report")
+        f = Frame(self.viewAppRptWin)
+        f.pack()
+        Label(f, text = "Application Report", font=("Helvetica", 20)).grid(row = 0, column = 0, columnspan = 4)
+
+        Label(f, text = "Project").grid(row = 2, column = 0, padx = 5, pady = 5)
+        Label(f, text = "# of Applicants").grid(row = 2, column = 1, sticky = W, padx = 10, pady = 5)
+        Label(f, text = "Acceptance Rate").grid(row = 2, column = 2, sticky = W, padx = 20, pady = 5)
+        Label(f, text = "Top 3 Majors").grid(row = 2, column = 3, sticky = W, padx = 10, pady = 5)
+
+        projectList = self.connect("SELECT DISTINCT Project_name FROM Apply", "Return Single Item")
+        totalCount = self.connect("SELECT COUNT(*) FROM Apply", "Return List")
+
+        totalApplicants = 0
+        totalAccepted = 0
+        row_num = 3
+        for element in projectList:
+            print(element)
+            numApp = self.connect("SELECT COUNT(Student_name) FROM Apply WHERE Project_name = \'%s\'" % element, "Return List")
+            print(numApp)
+            numAccepted = self.connect("SELECT COUNT(*) FROM Apply WHERE Project_name = \'%s\' AND Status = \'Accepted\'" % element, "Return List")
+            findMajors = self.connect("SELECT DISTINCT Major FROM (User LEFT OUTER JOIN Apply ON User.Username = Apply.Student_name) WHERE Project_name = \'%s\'" % element, "Return Single Item")
+            print(findMajors)
+
+            topThree = ''
+            majorList = []
+            numList = []
+
+            for major in findMajors:
+                sql = "SELECT COUNT(Username) Username FROM (User LEFT OUTER JOIN Apply ON User.Username = Apply.Student_name) WHERE Project_name = \'%s\' AND Major = \'%s\'" % (element, major)
+                numMajors = self.connect(sql, "Return List")
+                realNum = numMajors[0][0]
+                numList.append(realNum)
+
+            for i in range(3):
+                max_value = max(numList)
+                max_index = numList.index(max_value)
+                if len(findMajors) >= i:
+                    topMajor = findMajors.pop(max_index)
+                    if topMajor != 'on':
+                        topThree = topThree + topMajor + '/'
+            print(topThree)
+
+            numAccepted = int(numAccepted[0][0])
+            numApp = int(numApp[0][0])
+            acceptanceRate = numAccepted / numApp * 100
+            acceptanceRate = str(acceptanceRate)
+            acceptanceRate = acceptanceRate[:4] + "%"
+            Label(f, text = element).grid(row = row_num, column = 0, padx = 5, sticky = W, pady = 5)
+            Label(f, text = numApp).grid(row = row_num, column = 1, padx = 10, pady = 5)
+            Label(f, text = acceptanceRate).grid(row = row_num, column = 2, padx = 20, pady = 5)
+            Label(f, text = topThree).grid(row = row_num, column = 3, sticky = W, padx = 10, pady = 5)
+
+            row_num = row_num + 1
+            totalApplicants = int(totalApplicants) + numApp
+            totalAccepted = totalAccepted + numAccepted
+            textFormat = "%d Applications Total, %d accepted" % (totalApplicants, totalAccepted)
+        Label(f, text = textFormat).grid(row = 1, column = 0, sticky = W, columnspan = 2)
+
+        f = Frame(self.viewAppRptWin)
+        f.pack()
+        Button(f, text = "Back", command = self.quitAppRptGotoFunc).grid(row = 0, column = 0)
+
 
     def addProject(self):
         self.addProjectWin = Toplevel(self.loginWin)
@@ -1968,6 +2054,20 @@ class version2():
 
     def closeViewApp(self):
         self.viewAppsWin.withdraw()
+
+    def quitpopProjGotoFunc(self):
+        self.closePopProj()
+        self.chooseFunctionality
+
+    def closePopProj(self):
+        self.viewPopRptWin.withdraw()
+
+    def quitAppRptGotoFunc(self):
+        self.closeAppRpt()
+        self.chooseFunctionality
+
+    def closeAppRpt(self):
+        self.viewAppRptWin.withdraw()
 
 window = Tk()
 app = version2(window)
