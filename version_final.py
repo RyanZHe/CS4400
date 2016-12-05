@@ -129,7 +129,7 @@ class version2():
                 self.user = self.sLoginUser.get()
                 message = messagebox.showinfo("Congratulations", "Login Successfully")
 
-
+                
                 if isAdmin != 0:
                     username = self.sLoginUser.get()
                     sMajor = self.connect("SELECT Major FROM User WHERE Username = \'%s\'" % username, "Return Single Item")
