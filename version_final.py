@@ -187,12 +187,12 @@ class version2():
         # print(len(sMajor))
         self.dMajor.set(sMajor[0])
         Label(f, text = "Year", font=("Helvetica", 20)).grid(row = 1, column = 0)
-        OPTIONS = ['freshman', 'sophomore', 'junior', 'senior']
+        OPTIONS = ['freshman', 'sophomore', 'Junior', 'senior']
         self.dYear = StringVar()
         dropdown = OptionMenu(f, self.dYear, *OPTIONS)
         dropdown.config(width = 10)
         dropdown.grid(row = 1, column = 1)
-        self.dYear.set('sophomore')
+        self.dYear.set(self.connect("SELECT Year FROM User WHERE Username = \'%s\'" % username, "Return Single Item")[0])
         Label(f, text = "Department", font=("Helvetica", 20)).grid(row = 2, column = 0)
         major = self.dMajor.get()
         print(major)
@@ -209,7 +209,7 @@ class version2():
 
     def update(self):
         #print(self.sLoginUser.get())
-        sql = "UPDATE User SET Major = \'%s\', Year = 2014 WHERE Username = \'%s\'" % (self.dMajor.get(), self.sLoginUser.get())
+        sql = "UPDATE User SET Major = \'%s\', Year = \'%s\' WHERE Username = \'%s\'" % (self.dMajor.get(), self.dYear.get(), self.sLoginUser.get())
         # print(sql)
         self.connect(sql, "Insertion")
         # print(sql1)
@@ -219,7 +219,23 @@ class version2():
         self.myApplicationWin = Toplevel(self.loginWin)
         self.myApplicationWin.title("View My Application")
         
-        f = Frame(self.editProfileWin)
+        f = Frame(self.myApplicationWin)
+        Label(f, text = "My Application", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.myApplicationWin)
+        Label(f, text = "Date", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = "Project Name", font=("Helvetica", 20)).grid(row = 0, column = 1)
+        Label(f, text = "Status", font=("Helvetica", 20)).grid(row = 0, column = 2)
+        f.pack()
+
+        f = Frame(self.myApplicationWin)
+        applicationList = self.connect("SELECT Date, Project_name, Status FROM Apply WHERE Student_name = \'%s\'" % self.sLoginUser.get(), "Return Single Item")
+        for application in applicationList:
+            Label(f, text = application[12:], font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.myApplicationWin)
         Button(f, text = "Back", command = lambda: self.returnTo(self.myApplicationWin, self.mePageWin)).pack()
         f.pack()
 
@@ -227,9 +243,298 @@ class version2():
         self.projectSearchWin = Toplevel(self.loginWin)
         self.projectSearchWin.title("View Project")
 
+        f = Frame(self.projectSearchWin)
+        Label(f, text = "Search Project", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.projectSearchWin)
+        Label(f, text = "Title", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        self.sTitle = StringVar()
+        Entry(f, textvariable = self.sTitle).grid(row = 0, column = 1)
+        Label(f, text = "Designation", font=("Helvetica", 20)).grid(row = 1, column = 0)
+        self.sDesignation = StringVar()
+        OPTIONS = self.connect("SELECT Name FROM Designation", "Return Single Item")
+        dropdown = OptionMenu(f, self.sDesignation, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 1, column = 1)
+        Label(f, text = "Major", font=("Helvetica", 20)).grid(row = 2, column = 0)
+        self.sMajor = StringVar()
+        OPTIONS = self.connect("SELECT Name FROM Major", "Return Single Item")
+        dropdown = OptionMenu(f, self.sMajor, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 2, column = 1)
+        # Entry(f, textvariable = self.sMajor).grid(row = 2, column = 1)
+        Label(f, text = "Year", font=("Helvetica", 20)).grid(row = 3, column = 0)
+        self.sYear = StringVar()
+        OPTIONS = ['freshman', 'sophomore', 'Junior', 'Senior']
+        dropdown = OptionMenu(f, self.sYear, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 3, column = 1)
+        # Entry(f, textvariable = self.sYear).grid(row = 3, column = 1)
+        Label(f, text = "Category", font=("Helvetica", 20)).grid(row = 4, column = 0)
+        OPTIONS = self.connect("SELECT Name FROM Category", "Return Single Item")
+        self.dCategory = StringVar()
+        dropdown = OptionMenu(f, self.dCategory, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 4, column = 1)
+        Button(f, text = "Add a category", command = self.addCategory).grid(row = 4, column = 2)
+        self.categorySet = set()
+        f.pack()
+
+        f = Frame(self.projectSearchWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.projectSearchWin, self.selectWin)).grid(row = 0, column = 0)
+        Button(f, text = "Search", command = self.searchProject).grid(row = 0, column = 1)
+        f.pack()
+    
+    def addCategory(self):
+        self.categorySet.add(self.dCategory.get())
+
+    def searchProject(self):
+        self.searchProjectWin = Toplevel(self.loginWin)
+        self.searchProjectWin.title("View Project")
+
+        f = Frame(self.searchProjectWin)
+        Label(f, text = "Project Result", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        title = self.sTitle.get()
+        designation = self.sDesignation.get()
+        major = self.sMajor.get()
+        year = self.sYear.get()
+        icategorySet = self.categorySet
+        numconstraints = 0
+        sql = "SELECT Project.Name FROM Project LEFT OUTER JOIN Project_requirement ON Project.Name = Project_requirement.Name LEFT OUTER JOIN Project_is_category ON Project.Name = Project_is_category.Project_name"
+        if title != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            sql = sql + " Project.Name LIKE '%%%s%%'" % title
+        if designation != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            sql = sql + " Project.Designation = \'%s\'" % designation
+        if major != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            # name = self.connect("SELECT Name FROM Project_requirement WHERE Requirement LIKE %\'%s\'%" % major)
+            sql = sql + " Project_requirement.Requirement LIKE '%%%s%%'" % major
+        if year != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            # name = self.connect("SELECT Name FROM Project_requirement WHERE Requirement LIKE %\'%s\'%" % year)
+            sql = sql + " Project_requirement.Requirement LIKE '%%%s%%'" % year
+        # print(len(icategorySet))
+        if len(icategorySet) != 0:
+            for category in icategorySet:
+                if numconstraints == 0:
+                    sql = sql + " WHERE"
+                    numconstraints = 1
+                else:
+                    sql = sql + " AND"
+                # name = self.connect("SELECT Project_name FROM Project_is_category WHERE Category_name is \'%s\'" % category)
+                sql = sql + " Project_is_category.Category_name = \'%s\'" % category
+
+        f = Frame(self.searchProjectWin)
+        sql = sql + " GROUP BY Project.Name"
+        #print(sql)         
+        projectList = self.connect(sql, "Return Single Item")
+        for iproject in projectList:
+            Button(f, text = iproject, command = lambda: self.viewProject(iproject)).pack()
+        self.categorySet = set()
+        f.pack()
+
+    def viewProject(self, name):
+        self.viewProjectWin = Toplevel(self.loginWin)
+        self.viewProjectWin.title(name)
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = name, font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Advisor: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project WHERE Name = \'%s\'" % ("Advisor_name", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Description: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project WHERE Name = \'%s\'" % ("Description", name), "Return Single Item")[0], font=("Helvetica", 6)).grid(row = 1, column = 0)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Designation: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project WHERE Name = \'%s\'" % ("Designation_name", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Category: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project_is_category WHERE Project_name = \'%s\'" % ("Category_name", name), "Return Single Item"), font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Requirements: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project_requirement WHERE Name = \'%s\'" % ("Requirement", name), "Return Single Item"), font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Label(f, text = "Estimated number of students: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Project WHERE Name = \'%s\'" % ("NumStudent", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewProjectWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.viewProjectWin, self.searchProjectWin)).grid(row = 0, column = 0)
+        Button(f, text = "Apply", command = lambda: self.applyProject(name)).grid(row = 0, column = 1)
+        f.pack()
+
+    def applyProject(self, name):
+        major = self.dMajor.get()
+        year = self.dYear.get()
+        department = self.connect("SELECT Dept_Name FROM Major WHERE Name = \'%s\'" % major, "Return Single Item")[0]
+        print(department)
+        if len(self.connect("SELECT * FROM Project_requirement WHERE Type = 'Major'", "Return Single Item")) != 0:
+            if len(self.connect("SELECT * FROM Project_requirement WHERE Requirement LIKE '%%%s%%' AND Type = 'Major'" % major, "Return Single Item")) == 0:
+                error = messagebox.showerror("Error", "Your major does not fulfill the requirement")
+                return
+        if len(self.connect("SELECT * FROM Project_requirement WHERE Type = 'Year'", "Return Single Item")) != 0:
+            if len(self.connect("SELECT * FROM Project_requirement WHERE Requirement LIKE '%%%s%%' AND Type = 'Year'" % year, "Return Single Item")) == 0:
+                error = messagebox.showerror("Error", "Your year does not fulfill the requirement")
+                return
+        if len(self.connect("SELECT * FROM Project_requirement WHERE Type = 'Department'", "Return Single Item")) != 0:
+            if len(self.connect("SELECT * FROM Project_requirement WHERE Requirement LIKE '%%%s%%' AND Type = 'Department'" % department, "Return Single Item")) == 0:
+                error = messagebox.showerror("Error", "Your department does not fulfill the requirement")
+                return
+        import time
+        parameter = (self.sLoginUser.get(), name, time.strftime("%Y-%m-%d"), "Pending")
+        sql = "INSERT INTO Apply(Student_name, Project_name, Date, Status) VALUES (\'%s\' ,\'%s\', \'%s\', \'%s\')" % parameter
+        self.connect(sql, "Insertion")
+
     def courseSearch(self):
         self.courseSearchWin = Toplevel(self.loginWin)
-        self.courseSearchWin.title("View Courses")
+        self.courseSearchWin.title("View Course")
+
+        f = Frame(self.courseSearchWin)
+        Label(f, text = "Search Course", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.courseSearchWin)
+        Label(f, text = "Title", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        self.sTitle = StringVar()
+        Entry(f, textvariable = self.sTitle).grid(row = 0, column = 1)
+        Label(f, text = "Designation", font=("Helvetica", 20)).grid(row = 1, column = 0)
+        self.sDesignation = StringVar()
+        OPTIONS = self.connect("SELECT Name FROM Designation", "Return Single Item")
+        dropdown = OptionMenu(f, self.sDesignation, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 1, column = 1)
+        # Entry(f, textvariable = self.sDesignation).grid(row = 1, column = 1)
+        Label(f, text = "Category", font=("Helvetica", 20)).grid(row = 2, column = 0)
+        OPTIONS = self.connect("SELECT Name FROM Category", "Return Single Item")
+        self.dCategory = StringVar()
+        dropdown = OptionMenu(f, self.dCategory, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 2, column = 1)
+        Button(f, text = "Add a category", command = self.addCategory).grid(row = 2, column = 2)
+        self.categorySet = set()
+        f.pack()
+
+        f = Frame(self.courseSearchWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.courseSearchWin, self.selectWin)).grid(row = 0, column = 0)
+        Button(f, text = "Search", command = self.searchCourse).grid(row = 0, column = 1)
+        f.pack()
+
+    def searchCourse(self):
+        self.searchCourseWin = Toplevel(self.loginWin)
+        self.searchCourseWin.title("View Course")
+
+        f = Frame(self.searchCourseWin)
+        Label(f, text = "Course Result", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        title = self.sTitle.get()
+        designation = self.sDesignation.get()
+        icategorySet = self.categorySet
+        numconstraints = 0
+        sql = "SELECT Course.Name FROM Course LEFT OUTER JOIN Course_is_category ON Course.Name = Course_is_category.Course_name"
+        if title != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            sql = sql + " Course.Name LIKE '%%%s%%'" % title
+        if designation != '':
+            if numconstraints == 0:
+                sql = sql + " WHERE"
+                numconstraints = 1
+            else:
+                sql = sql + " AND"
+            sql = sql + " Course.Designation = \'%s\'" % designation
+        if len(icategorySet) != 0:
+            for category in icategorySet:
+                if numconstraints == 0:
+                    sql = sql + " WHERE"
+                    numconstraints = 1
+                else:
+                    sql = sql + " AND"
+                # name = self.connect("SELECT Project_name FROM Project_is_category WHERE Category_name is \'%s\'" % category)
+                sql = sql + " Course_is_category.Category_name = \'%s\'" % category
+
+        f = Frame(self.searchCourseWin)
+        sql = sql + " GROUP BY Course.Name"
+        #print(sql)         
+        courseList = self.connect(sql, "Return Single Item")
+        for icourse in courseList:
+            Button(f, text = icourse, command = lambda: self.viewCourse(icourse)).pack()
+        self.categorySet = set()
+        f.pack()
+
+    def viewCourse(self, name):
+        self.viewCourseWin = Toplevel(self.loginWin)
+        self.viewCourseWin.title(name)
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = self.connect("SELECT %s FROM Course WHERE Name = \'%s\'" % ("Course_Number", name), "Return Single Item")[0], font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = "Course Name: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = name, font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = "Instructor: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Course WHERE Name = \'%s\'" % ("Instructor", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 1, column = 0)
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = "Designation: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Course WHERE Name = \'%s\'" % ("Designation_name", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = "Category: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Course_is_category WHERE Course_name = \'%s\'" % ("Category_name", name), "Return Single Item"), font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Label(f, text = "Estimated number of students: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        Label(f, text = self.connect("SELECT %s FROM Course WHERE Name = \'%s\'" % ("NumStudent", name), "Return Single Item")[0], font=("Helvetica", 20)).grid(row = 0, column = 1)
+        f.pack()
+
+        f = Frame(self.viewCourseWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.viewCourseWin, self.searchCourseWin)).grid(row = 0, column = 0)
+        f.pack()
 
 ###################################################### Admin Functionalities
 
