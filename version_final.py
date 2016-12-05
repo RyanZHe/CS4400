@@ -557,7 +557,7 @@ class version2():
 
     def viewApplications(self):
         self.viewAppsWin = Toplevel(self.loginWin)
-        self.viewAppsWin.geometry('{}x{}'.format(600, 450))
+        self.viewAppsWin.geometry('{}x{}'.format(800, 500))
         self.viewAppsWin.title("View Applications")
 
         f = Frame(self.viewAppsWin)
@@ -581,8 +581,6 @@ class version2():
         for num in range(1,int(numProj[0][0]) + 1):
             userId = userIdList[num - 1]
             appMajorYear = self.connect("SELECT Year, Major FROM User WHERE Username = \'%s\'" % userId, "Return List")
-
-# Rayquaza
             self.projectName = projects[num - 1][0]
             self.currentStatus = projects[num - 1][1]
             self.studentName = projects[num - 1][2]
@@ -636,7 +634,7 @@ class version2():
     def callback(self, value):
         if value != 'Pending':
             self.callbackWin = Toplevel(self.loginWin)
-            self.callbackWin.geometry('{}x{}'.format(400, 300))
+            self.callbackWin.geometry('{}x{}'.format(300, 200))
             self.callbackWin.title("Change Status")
             print(self.projectName2)
             projectName = self.projectName2
@@ -652,24 +650,11 @@ class version2():
             Button(f, text = "Yes", command = lambda: self.changeStatus(sql)).grid(row = 1, column = 0)
             Button(f, text = "No", command = self.chooseFunctionality).grid(row = 1, column = 1)
 
+
     def changeStatus(self, sql):
         self.callbackWin.withdraw()
         self.connect(sql, "Insertion")
         self.viewApplications
-
-        # OPTIONS = self.connect("SELECT Project_name FROM Apply", "Return Single Item")
-        # dProject = StringVar()
-        # dropdown = OptionMenu(f, dProject, *OPTIONS)
-        # dropdown.config(width = 15, padx = 15, pady = 5)
-        # dropdown.pack()
-
-        # print(projects)
-        # print(projects[0][0]) #Epic
-        # print(projects[0][1]) #Pending
-        # sql = "SELECT CountryName, CityName, CountryPopulation, CountryLanguage FROM (CITY NATURAL JOIN COUNTRY_LANGUAGE NATURAL JOIN COUNTRY) WHERE Is_Capital = '1' %s %s %s ORDER BY CountryName ASC"
-        # self.displayProjects = CheckBar(f, projects)
-        # self.displayProjects.grid(row = 1, column = 0)
-        # f.pack()
 
 
     def viewPopularProjectReport(self):
