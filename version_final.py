@@ -350,7 +350,7 @@ class version2():
         #print(sql)
         projectList = self.connect(sql, "Return Single Item")
         for iproject in projectList:
-            Button(f, text = iproject, command = lambda: self.viewProject(iproject)).pack()
+            Button(f, text = iproject, command = lambda iproject = iproject: self.viewProject(iproject)).pack()
         self.categorySet = set()
         f.pack()
 
@@ -495,7 +495,7 @@ class version2():
         #print(sql)
         courseList = self.connect(sql, "Return Single Item")
         for icourse in courseList:
-            Button(f, text = icourse, command = lambda: self.viewCourse(icourse)).pack()
+            Button(f, text = icourse, command = lambda icourse = icourse: self.viewCourse(icourse)).pack()
         self.categorySet = set()
         f.pack()
 
@@ -504,6 +504,8 @@ class version2():
         self.viewCourseWin.title(name)
 
         f = Frame(self.viewCourseWin)
+        # print(self.connect("SELECT Course_Number FROM Course WHERE Name = 'Atmosphere, Ocean, and Climate Dynamics'", "Return Single Item"))
+        # print(name + '1')
         Label(f, text = self.connect("SELECT %s FROM Course WHERE Name = \'%s\'" % ("Course_Number", name), "Return Single Item")[0], font=("Helvetica", 20)).pack()
         f.pack()
 
@@ -771,11 +773,168 @@ class version2():
         self.addProjectWin = Toplevel(self.loginWin)
         self.addProjectWin.title("Add a Project")
 
+        f = Frame(self.addProjectWin)
+        Label(f, text = "Add a New Project", font=("Helvetica", 20)).pack()
+        f.pack()
+
+        f = Frame(self.addProjectWin)
+        Label(f, text = "Project Name: ").grid(row = 0, column = 0)
+        Label(f, text = "Advisor: ").grid(row = 1, column = 0)
+        Label(f, text = "Advisor Email: ").grid(row = 2, column = 0)
+        Label(f, text = "Description: ").grid(row = 3, column = 0)
+        Label(f, text = "Estimated Num. Students: ").grid(row = 4, column = 0)
+        self.sProjectName = StringVar()
+        Entry(f, textvariable = self.sProjectName).grid(row = 0, column = 1)
+        self.sAdvisor = StringVar()
+        Entry(f, textvariable = self.sAdvisor).grid(row = 1, column = 1)
+        self.sAdvisorEmail = StringVar()
+        Entry(f, textvariable = self.sAdvisorEmail).grid(row = 2, column = 1)
+        self.sDescription = StringVar()
+        Entry(f, textvariable = self.sDescription).grid(row = 3, column = 1)
+        self.sNumStudents = StringVar()
+        Entry(f, textvariable = self.sNumStudents).grid(row = 4, column = 1)
+        f.pack()
+
+        f = Frame(self.addProjectWin)
+        f.pack()
+        Label(f, text = "Category: ").grid(row = 0, column = 0)
+        OPTIONS1 = self.connect("SELECT DISTINCT Category_name FROM Project_is_category", "Return Single Item")
+        self.dCategory = StringVar()
+        dropdown1 = OptionMenu(f, self.dCategory, *OPTIONS1)
+        dropdown1.config(width = 15, padx = 15, pady = 5)
+        dropdown1.grid(row = 0, column = 1)
+        # username = self.sLoginUser.get()
+        # sMajor = self.connect("SELECT Major FROM User WHERE Username = \'%s\'" % username, "Return Single Item")
+
+        Label(f, text = "Designation: ").grid(row = 1, column = 0)
+        OPTIONS2 = self.connect("SELECT Name FROM Designation", "Return Single Item")
+        self.dDesignation = StringVar()
+        dropdown2 = OptionMenu(f, self.dDesignation, *OPTIONS2)
+        dropdown2.config(width = 15, padx = 15, pady = 5)
+        dropdown2.grid(row = 1, column = 1)
+
+        Label(f, text = "Major Requirement: ").grid(row = 2, column = 0)
+        OPTIONS3 = ['Only CS Majors', 'Only IE Majors', 'Only CEE Majors', 'Only Math Majors', 'Only ME Majors', 'Only CHE Majors', 'Only CE Majors', 'Only BME Majors']
+        self.dMjrRequirement = StringVar()
+        dropdown3 = OptionMenu(f, self.dMjrRequirement, *OPTIONS3)
+        dropdown3.config(width = 15, padx = 15, pady = 5)
+        dropdown3.grid(row = 2, column = 1)
+
+        Label(f, text = "Year Requirement: ").grid(row = 3, column = 0)
+        OPTIONS4 = ['Only Freshmen', 'Only Sophomores', 'Only Juniors', 'Only Seniors', 'Freshmen and Above', 'Sophomores and Above', 'Juniors and Above', 'Freshmen and Sophomores']
+        self.dYrRequirement = StringVar()
+        dropdown4 = OptionMenu(f, self.dYrRequirement, *OPTIONS4)
+        dropdown4.config(width = 15, padx = 15, pady = 5)
+        dropdown4.grid(row = 3, column = 1)
+
+        Label(f, text = "Department Requirement: ").grid(row = 4, column = 0)
+        OPTIONS5 = self.connect("SELECT Name FROM Department", "Return Single Item")
+        self.dDptRequirement = StringVar()
+        dropdown5 = OptionMenu(f, self.dDptRequirement, *OPTIONS5)
+        dropdown5.config(width = 15, padx = 15, pady = 5)
+        dropdown5.grid(row = 4, column = 1)
+
+        f = Frame(self.addProjectWin)
+        Button(f, text = "Submit", command = self.checkProject).pack()
+        f.pack()
+
+    def checkProject(self):
+        projectName = self.sProjectName.get()
+        advisor = self.sAdvisor.get()
+        advisorEmail = self.sAdvisorEmail.get()
+        description = self.sDescription.get()
+        numStudent = self.sNumStudents.get()
+        category = self.dCategory.get()
+
+        count = 0
+        requirementType = []
+        requirementDesc = []
+        if self.dMjrRequirement.get() != '':
+            count = count + 1
+            requirementType.append('Major')
+            requirementDesc.append(self.dMjrRequirement.get())
+        if self.dYrRequirement.get() != '':
+            count = count + 1
+            requirementType.append('Year')
+            requirementDesc.append(self.dYrRequirement.get())
+        if self.dDptRequirement.get() != '':
+            count = count + 1
+            requirementType.append('Department')
+            requirementDesc.append(self.dDptRequirement.get())
+
+        num1 = self.connect("SELECT * FROM Project WHERE Name = \'%s\'" % projectName, "Return Execution Number")
+        #num2 = self.connect("SELECT * FROM User WHERE Email = \'%s\'" % email, "Return Execution Number")
+        if num1 != 0:
+            error = messagebox.showerror("Existed Project Name", "Pick Another Project Name")
+        else:
+            parameter1 = (projectName, description, self.dDesignation.get(), advisor, advisorEmail, numStudent)
+            sql1 = "INSERT INTO Project(Name, Description, Designation_name, Advisor_name, Advisor_email, NumStudent) VALUES (\'%s\' ,\'%s\', \'%s\', \'%s\', \'%s\', \'%s\')" % parameter1
+            self.connect(sql1, "Insertion")
+
+            for i in range(count):
+                parameter2 = (projectName, requirementDesc[i], requirementType[i])
+                sql2 = "INSERT INTO Project_requirement(Name,Requirement,Type) VALUES (\'%s\' ,\'%s\', \'%s\')" % parameter2
+                self.connect(sql2, "Insertion")
+
+            parameter3 = (projectName, category)
+            sql3 = "INSERT INTO Project_is_category(Project_name,Category_name) VALUES (\'%s\' ,\'%s\', \'%s\')" % parameter3
+            self.connect(sql3, "Insertion")
+
+            message = messagebox.showinfo("Congratulations", "New Project Added!")
+            self.addProjectWin.withdraw()
+
+
     def addCourse(self):
         self.addCourseWin = Toplevel(self.loginWin)
         self.addCourseWin.title("Add a Course")
 
+        f = Frame(self.addCourseWin)
+        Label(f, text = "Add a Course", font=("Helvetica", 20)).pack()
+        f.pack()
 
+        f = Frame(self.addCourseWin)
+        Label(f, text = "Course Number: ", font=("Helvetica", 20)).grid(row = 0, column = 0)
+        self.sCourseNum = StringVar()
+        Entry(f, textvariable = self.sCourseNum).grid(row = 0, column = 1)
+        Label(f, text = "Course Name: ", font=("Helvetica", 20)).grid(row = 1, column = 0)
+        self.sCourseName = StringVar()
+        Entry(f, textvariable = self.sCourseName).grid(row = 1, column = 1)
+        Label(f, text = "Instructor: ", font=("Helvetica", 20)).grid(row = 2, column = 0)
+        self.sInstructor = StringVar()
+        Entry(f, textvariable = self.sInstructor).grid(row = 2, column = 1)
+        Label(f, text = "Designation", font=("Helvetica", 20)).grid(row = 3, column = 0)
+        self.sDesignation = StringVar()
+        OPTIONS = self.connect("SELECT Name FROM Designation", "Return Single Item")
+        dropdown = OptionMenu(f, self.sDesignation, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 3, column = 1)
+        Label(f, text = "Category", font=("Helvetica", 20)).grid(row = 4, column = 0)
+        OPTIONS = self.connect("SELECT Name FROM Category", "Return Single Item")
+        self.dCategory = StringVar()
+        dropdown = OptionMenu(f, self.dCategory, *OPTIONS)
+        dropdown.config(width = 10)
+        dropdown.grid(row = 4, column = 1)
+        Button(f, text = "Add a category", command = self.addCategory).grid(row = 4, column = 2)
+        self.categorySet = set()
+        Label(f, text = "Estimated # of students: ", font=("Helvetica", 20)).grid(row = 5, column = 0)
+        self.sNumStudent = IntVar()
+        Entry(f, textvariable = self.sNumStudent).grid(row = 5, column = 1)
+        f.pack()
+
+        f = Frame(self.addCourseWin)
+        Button(f, text = "Back", command = lambda: self.returnTo(self.addCourseWin, self.self.chooseFuncWin)).grid(row = 0, column = 0)
+        Button(f, text = "Submit", command = self.addaCourse).grid(row = 0, column = 1)
+        f.pack()
+
+    def addaCourse(self):
+        sql = "INSERT INTO Course(Name, Course_Number, Instructor, Designation_name, NumStudent) VALUES (\'%s\' ,\'%s\' ,\'%s\', \'%s\', \'%i\')" % (self.sCourseName.get(), self.sCourseNum.get(), self.sInstructor.get(), self.sDesignation.get(), int(self.sNumStudent.get()))
+        # print(sql)
+        self.connect(sql, "Insertion")
+        # print(sql1)
+        for category in self.categorySet:
+            sql1 = "INSERT INTO Course_is_category(Course_name, Category_name) VALUES (\'%s\', \'%s\')" % (self.sCourseName.get(), category)
+            self.connect(sql1, "Insertion")
+        self.returnTo(self.addCourseWin, self.chooseFuncWin)
 ######################################################
 
     def countrySearch(self):
