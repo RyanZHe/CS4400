@@ -788,6 +788,8 @@ class version2():
         dropdown1 = OptionMenu(f, self.dCategory, *OPTIONS1)
         dropdown1.config(width = 15, padx = 15, pady = 5)
         dropdown1.grid(row = 0, column = 1)
+        Button(f, text = "Add a category", command = self.addCategory).grid(row = 0, column = 2)
+        self.categorySet = set()
         # username = self.sLoginUser.get()
         # sMajor = self.connect("SELECT Major FROM User WHERE Username = \'%s\'" % username, "Return Single Item")
 
@@ -799,14 +801,14 @@ class version2():
         dropdown2.grid(row = 1, column = 1)
 
         Label(f, text = "Major Requirement: ").grid(row = 2, column = 0)
-        OPTIONS3 = ['Only CS Majors', 'Only IE Majors', 'Only CEE Majors', 'Only Math Majors', 'Only ME Majors', 'Only CHE Majors', 'Only CE Majors', 'Only BME Majors']
+        OPTIONS3 = self.connect("SELECT Name FROM Major", "Return Single Item")
         self.dMjrRequirement = StringVar()
         dropdown3 = OptionMenu(f, self.dMjrRequirement, *OPTIONS3)
         dropdown3.config(width = 15, padx = 15, pady = 5)
         dropdown3.grid(row = 2, column = 1)
 
         Label(f, text = "Year Requirement: ").grid(row = 3, column = 0)
-        OPTIONS4 = ['Only Freshmen', 'Only Sophomores', 'Only Juniors', 'Only Seniors', 'Freshmen and Above', 'Sophomores and Above', 'Juniors and Above', 'Freshmen and Sophomores']
+        OPTIONS4 = ['Only freshmen', 'Only sophomores', 'Only Juniors', 'Only seniors']
         self.dYrRequirement = StringVar()
         dropdown4 = OptionMenu(f, self.dYrRequirement, *OPTIONS4)
         dropdown4.config(width = 15, padx = 15, pady = 5)
@@ -861,9 +863,13 @@ class version2():
                 sql2 = "INSERT INTO Project_requirement(Name,Requirement,Type) VALUES (\'%s\' ,\'%s\', \'%s\')" % parameter2
                 self.connect(sql2, "Insertion")
 
-            parameter3 = (projectName, category)
-            sql3 = "INSERT INTO Project_is_category(Project_name,Category_name) VALUES (\'%s\' ,\'%s\', \'%s\')" % parameter3
-            self.connect(sql3, "Insertion")
+            # parameter3 = (projectName, category)
+            # sql3 = "INSERT INTO Project_is_category(Project_name,Category_name) VALUES (\'%s\' ,\'%s\', \'%s\')" % parameter3
+            # self.connect(sql3, "Insertion")
+
+            for category in self.categorySet:
+                sql1 = "INSERT INTO Project_is_category(Project_name, Category_name) VALUES (\'%s\', \'%s\')" % (projectName, category)
+                self.connect(sql1, "Insertion")
 
             message = messagebox.showinfo("Congratulations", "New Project Added!")
             self.addProjectWin.withdraw()
