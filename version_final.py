@@ -570,7 +570,7 @@ class version2():
         Label(f, text = "Status", font=("Helvetica", 15)).grid(row = 0, column = 3, sticky = W, padx = 10, pady = 5)
 
 
-        #numProj = self.connect("SELECT COUNT(Project_name) FROM Apply", "Return List")
+        numProj = self.connect("SELECT COUNT(Project_name) FROM Apply", "Return List")
         #print(numProj)
         projects = self.connect("SELECT Project_name, Status, Student_name FROM Apply", "Return List")
         acceptRejectList = []
